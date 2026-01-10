@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * fumadocs-mermaid/ui
  *
