@@ -36,7 +36,8 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "clean": "rimraf dist",
-    "types:check": "tsc --noEmit"
+    "types:check": "tsc --noEmit",
+    "prepare": "tsup"
   },
   "dependencies": {
     "unist-util-visit": "^5.0.0"
@@ -50,7 +51,8 @@
     "react": "^19.0.0",
     "rimraf": "^6.0.0",
     "tsup": "^8.0.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "unified": "^11.0.0"
   },
   "peerDependencies": {
     "mermaid": "^10.0.0 || ^11.0.0",

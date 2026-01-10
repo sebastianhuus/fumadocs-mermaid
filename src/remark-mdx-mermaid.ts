@@ -56,7 +56,7 @@ export interface RemarkMdxMermaidOptions {
 export function remarkMdxMermaid(options: RemarkMdxMermaidOptions = {}): Transformer<Root, Root> {
   const { lang = 'mermaid' } = options;
 
-  return (tree) => {
+  return (tree: Root) => {
     visit(tree, 'code', (node) => {
       if (node.lang !== lang || !node.value) return;
 

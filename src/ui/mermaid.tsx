@@ -60,8 +60,8 @@ function MermaidContent({ chart, themeOverride, themeCSS }: MermaidContentProps)
   const id = useId();
 
   // Try to get theme from next-themes if available
-  let resolvedTheme = themeOverride;
-  if (!resolvedTheme) {
+  let resolvedTheme: string = themeOverride ?? 'default';
+  if (!themeOverride) {
     try {
       // Dynamic import to make next-themes optional
       const { useTheme } = require('next-themes');
@@ -82,7 +82,7 @@ function MermaidContent({ chart, themeOverride, themeCSS }: MermaidContentProps)
     securityLevel: 'loose',
     fontFamily: 'inherit',
     themeCSS,
-    theme: resolvedTheme,
+    theme: resolvedTheme as any,
   });
 
   const { svg, bindFunctions } = use(
