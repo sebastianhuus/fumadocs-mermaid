@@ -1,6 +1,7 @@
 'use client';
 
 import { use, useEffect, useId, useState } from 'react';
+import { useTheme } from 'next-themes';
 
 export interface MermaidProps {
   /**
@@ -58,20 +59,10 @@ interface MermaidContentProps {
 
 function MermaidContent({ chart, themeOverride, themeCSS }: MermaidContentProps) {
   const id = useId();
+  const { resolvedTheme: systemTheme } = useTheme();
 
-  // Try to get theme from next-themes if available
-  let resolvedTheme: string = themeOverride ?? 'default';
-  if (!themeOverride) {
-    try {
-      // Dynamic import to make next-themes optional
-      const { useTheme } = require('next-themes');
-      const themeContext = useTheme();
-      resolvedTheme = themeContext.resolvedTheme === 'dark' ? 'dark' : 'default';
-    } catch {
-      // next-themes not available, use default
-      resolvedTheme = 'default';
-    }
-  }
+  // Use override if provided, otherwise use system theme, fallback to 'default'
+  const resolvedTheme = themeOverride ?? (systemTheme === 'dark' ? 'dark' : 'default');
 
   const { default: mermaid } = use(
     cachePromise('mermaid', () => import('mermaid'))
