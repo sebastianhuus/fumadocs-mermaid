@@ -9,12 +9,12 @@
     "documentation",
     "mdx"
   ],
-  "homepage": "https://github.com/yourusername/fumadocs-mermaid",
+  "homepage": "https://github.com/sebastianhuus/fumadocs-mermaid",
   "license": "MIT",
-  "author": "Your Name",
+  "author": "Sebastian Huus",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/fumadocs-mermaid.git"
+    "url": "https://github.com/sebastianhuus/fumadocs-mermaid.git"
   },
   "files": [
     "dist"
