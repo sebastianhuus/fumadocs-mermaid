@@ -1,5 +1,7 @@
 # fumadocs-mermaid
 
+![image showing various mermaid diagrams on fumadocs](readme-img1.png)
+
 Mermaid diagram integration for [Fumadocs](https://fumadocs.dev) - a modern documentation framework for React.
 
 ## Features
