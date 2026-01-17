@@ -79,11 +79,11 @@ function buildMermaidConfig(configStr: string | undefined, themeOverride: string
 
   const config: MermaidConfig = {};
 
-  // Theme (flat or override)
-  if (themeOverride) {
-    config.theme = themeOverride;
-  } else if (parsed.theme) {
+  // Theme: code block attribute takes priority, then fall back to system theme
+  if (parsed.theme) {
     config.theme = parsed.theme;
+  } else if (themeOverride) {
+    config.theme = themeOverride;
   }
 
   // Packet diagram options

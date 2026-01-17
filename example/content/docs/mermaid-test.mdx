@@ -9,7 +9,7 @@ This page tests that per-code-block configuration works correctly and doesn't le
 
 ## Flowchart Examples
 
-### Basic Flowchart
+### Basic Flowchart (Default Theme)
 
 ````md
 ```mermaid
@@ -22,6 +22,54 @@ graph TD
 ```mermaid
 graph TD
     A[Start] --> B[Process]
+    B --> C[End]
+```
+
+### Forest Theme
+
+````md
+```mermaid theme="forest"
+graph TD
+    A[Start] --> B[Process]
+    B --> C[End]
+```
+````
+
+```mermaid theme="forest"
+graph TD
+    A[Start] --> B[Process]
+    B --> C[End]
+```
+
+### Dark Theme
+
+````md
+```mermaid theme="dark"
+graph LR
+    X[Input] --> Y[Process]
+    Y --> Z[Output]
+```
+````
+
+```mermaid theme="dark"
+graph LR
+    X[Input] --> Y[Process]
+    Y --> Z[Output]
+```
+
+### Neutral Theme
+
+````md
+```mermaid theme="neutral"
+graph TD
+    A[Begin] --> B[Middle]
+    B --> C[End]
+```
+````
+
+```mermaid theme="neutral"
+graph TD
+    A[Begin] --> B[Middle]
     B --> C[End]
 ```
 
