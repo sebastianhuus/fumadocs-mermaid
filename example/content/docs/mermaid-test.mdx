@@ -1,0 +1,110 @@
+---
+title: Mermaid Configuration Test
+description: Testing per-code-block configuration isolation
+---
+
+# Mermaid Configuration Test
+
+This page tests that per-code-block configuration works correctly and doesn't leak between diagrams.
+
+## Flowchart Tests
+
+### Flowchart 1: Default Theme
+
+```mermaid
+graph TD
+    A[Start] --> B[Process]
+    B --> C[End]
+```
+
+### Flowchart 2: Forest Theme
+
+This should use the forest theme. If config isolation works, it should NOT affect Flowchart 1 above.
+
+```mermaid theme="forest"
+graph TD
+    X[Begin] --> Y[Middle]
+    Y --> Z[Finish]
+```
+
+## Packet Diagram Tests
+
+### Packet 1: Default Settings
+
+```mermaid
+packet-beta
+0-15: "Source Port"
+16-31: "Destination Port"
+32-63: "Sequence Number"
+64-95: "Acknowledgment Number"
+```
+
+### Packet 2: Custom Row Height
+
+This packet should have a taller row height (80px). If config isolation works, it should NOT affect Packet 1 above.
+
+```mermaid rowHeight="80"
+packet-beta
+0-15: "Header"
+16-31: "Payload"
+32-47: "Checksum"
+48-63: "Footer"
+```
+
+### Packet 3: Custom Bits Per Row (16-bit)
+
+Default is 32 bits per row. This uses 16 bits per row - each row should be half the width.
+
+```mermaid bitsPerRow="16"
+packet-beta
+0-7: "Byte 1"
+8-15: "Byte 2"
+16-23: "Byte 3"
+24-31: "Byte 4"
+```
+
+### Packet 4: Custom Bits Per Row (48-bit)
+
+This uses 48 bits per row - wider rows with more fields fitting horizontally.
+
+```mermaid bitsPerRow="48"
+packet-beta
+0-15: "Field A"
+16-31: "Field B"
+32-47: "Field C"
+48-63: "Field D"
+64-79: "Field E"
+80-95: "Field F"
+```
+
+## Mixed Config Test
+
+### Flowchart with Dark Theme
+
+```mermaid theme="dark"
+graph LR
+    A[Input] --> B[Transform]
+    B --> C[Output]
+```
+
+### Packet with Multiple Options
+
+```mermaid theme="neutral" rowHeight="60" bitsPerRow="32"
+packet-beta
+0-7: "Version"
+8-15: "IHL"
+16-31: "Total Length"
+```
+
+## Verification Checklist
+
+After the page loads, verify:
+
+1. **Flowchart 1** uses the default theme (matches your site's light/dark mode)
+2. **Flowchart 2** uses the green "forest" theme
+3. **Packet 1** has default row heights
+4. **Packet 2** has noticeably taller rows (80px)
+5. **Dark flowchart** has a dark background
+6. **Final packet** has neutral theme with custom dimensions
+
+If any diagram's config affects another diagram, the isolation is broken.
