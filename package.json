@@ -1,62 +1,8 @@
 {
-  "name": "fumadocs-mermaid",
-  "version": "1.0.0",
-  "description": "Mermaid diagram integration for Fumadocs",
-  "keywords": [
-    "fumadocs",
-    "mermaid",
-    "diagrams",
-    "documentation",
-    "mdx"
-  ],
-  "homepage": "https://github.com/sebastianhuus/fumadocs-mermaid",
-  "license": "MIT",
-  "author": "Sebastian Huus",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/sebastianhuus/fumadocs-mermaid.git"
-  },
-  "files": [
-    "dist"
-  ],
-  "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./ui": {
-      "types": "./dist/ui/index.d.ts",
-      "import": "./dist/ui/index.js"
-    }
-  },
+  "name": "fumadocs-mermaid-monorepo",
+  "private": true,
   "scripts": {
-    "build": "tsdown",
-    "dev": "tsdown --watch",
-    "clean": "rimraf dist",
-    "types:check": "tsc --noEmit",
-    "prepare": "tsdown"
-  },
-  "dependencies": {
-    "unist-util-visit": "^5.0.0"
-  },
-  "devDependencies": {
-    "@types/mdast": "^4.0.4",
-    "@types/node": "^22.0.0",
-    "@types/react": "^19.0.0",
-    "mermaid": "^11.0.0",
-    "next-themes": "^0.4.0",
-    "react": "^19.0.0",
-    "rimraf": "^6.0.0",
-    "tsdown": "^0.18.0",
-    "typescript": "^5.9.0",
-    "unified": "^11.0.0"
-  },
-  "peerDependencies": {
-    "mermaid": "^10.0.0 || ^11.0.0",
-    "next-themes": "*",
-    "react": "^18.0.0 || ^19.0.0"
+    "build": "pnpm --filter fumadocs-mermaid build",
+    "dev": "pnpm --filter fumadocs-mermaid dev"
   }
 }

@@ -1,0 +1,192 @@
+---
+title: Mermaid Configuration Test
+description: Testing per-code-block configuration isolation
+---
+
+# Mermaid Configuration Test
+
+This page tests that per-code-block configuration works correctly and doesn't leak between diagrams.
+
+## Flowchart Examples
+
+### Basic Flowchart (Default Theme)
+
+````md
+```mermaid
+graph TD
+    A[Start] --> B[Process]
+    B --> C[End]
+```
+````
+
+```mermaid
+graph TD
+    A[Start] --> B[Process]
+    B --> C[End]
+```
+
+### Forest Theme
+
+````md
+```mermaid theme="forest"
+graph TD
+    A[Start] --> B[Process]
+    B --> C[End]
+```
+````
+
+```mermaid theme="forest"
+graph TD
+    A[Start] --> B[Process]
+    B --> C[End]
+```
+
+### Dark Theme
+
+````md
+```mermaid theme="dark"
+graph LR
+    X[Input] --> Y[Process]
+    Y --> Z[Output]
+```
+````
+
+```mermaid theme="dark"
+graph LR
+    X[Input] --> Y[Process]
+    Y --> Z[Output]
+```
+
+### Neutral Theme
+
+````md
+```mermaid theme="neutral"
+graph TD
+    A[Begin] --> B[Middle]
+    B --> C[End]
+```
+````
+
+```mermaid theme="neutral"
+graph TD
+    A[Begin] --> B[Middle]
+    B --> C[End]
+```
+
+## Packet Diagram Examples
+
+### Packet 1: Default Settings
+
+````md
+```mermaid
+packet-beta
+0-15: "Source Port"
+16-31: "Destination Port"
+32-63: "Sequence Number"
+64-95: "Acknowledgment Number"
+```
+````
+
+```mermaid
+packet-beta
+0-15: "Source Port"
+16-31: "Destination Port"
+32-63: "Sequence Number"
+64-95: "Acknowledgment Number"
+```
+
+### Packet 2: Custom Row Height
+
+Uses `rowHeight="80"` for taller rows.
+
+````md
+```mermaid rowHeight="80"
+packet-beta
+0-15: "Header"
+16-31: "Payload"
+32-47: "Checksum"
+48-63: "Footer"
+```
+````
+
+```mermaid rowHeight="80"
+packet-beta
+0-15: "Header"
+16-31: "Payload"
+32-47: "Checksum"
+48-63: "Footer"
+```
+
+### Packet 3: 16 Bits Per Row
+
+Uses `bitsPerRow="16"` - narrower diagram with fewer columns per row.
+
+````md
+```mermaid bitsPerRow="16"
+packet-beta
+0-7: "Byte 1"
+8-15: "Byte 2"
+16-23: "Byte 3"
+24-31: "Byte 4"
+```
+````
+
+```mermaid bitsPerRow="16"
+packet-beta
+0-7: "Byte 1"
+8-15: "Byte 2"
+16-23: "Byte 3"
+24-31: "Byte 4"
+```
+
+### Packet 4: 48 Bits Per Row
+
+Uses `bitsPerRow="48"` - wider diagram with more columns per row.
+
+````md
+```mermaid bitsPerRow="48"
+packet-beta
+0-15: "Field A"
+16-31: "Field B"
+32-47: "Field C"
+48-63: "Field D"
+64-79: "Field E"
+80-95: "Field F"
+```
+````
+
+```mermaid bitsPerRow="48"
+packet-beta
+0-15: "Field A"
+16-31: "Field B"
+32-47: "Field C"
+48-63: "Field D"
+64-79: "Field E"
+80-95: "Field F"
+```
+
+### Packet 5: Combined Options
+
+Uses both `rowHeight="60"` and `bitsPerRow="16"` together.
+
+````md
+```mermaid rowHeight="60" bitsPerRow="16"
+packet-beta
+0-7: "Version"
+8-15: "IHL"
+16-23: "DSCP"
+24-31: "ECN"
+```
+````
+
+```mermaid rowHeight="60" bitsPerRow="16"
+packet-beta
+0-7: "Version"
+8-15: "IHL"
+16-23: "DSCP"
+24-31: "ECN"
+```
+
+## Configuration Isolation Test
+
+The diagrams above should each have their own independent configuration. If Packet 1 (default) looks the same width as Packet 3 (16-bit), the configuration is leaking between diagrams.
