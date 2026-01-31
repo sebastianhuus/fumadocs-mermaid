@@ -16,7 +16,10 @@ Mermaid diagram integration for [Fumadocs](https://fumadocs.dev) - a modern docu
 
 ### Exportable flag
 
-![](./exportable-demo.mov)
+
+https://github.com/user-attachments/assets/581444e1-7c5b-453c-ac94-5c7e4bb6cdfb
+
+
 
 ## Installation
 
