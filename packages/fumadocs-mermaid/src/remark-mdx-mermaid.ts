@@ -37,7 +37,10 @@ function parseCodeBlockAttributes(meta: string): CodeBlockAttributes {
   return { rest: str.trim(), attributes };
 }
 
-function toMDX(code: string, config: Record<string, string | null>): MdxJsxFlowElement {
+function toMDX(code: string, parsedAttributes: Record<string, string | null>): MdxJsxFlowElement {
+  // Extract exportable flag before passing rest as config
+  const { exportable, ...config } = parsedAttributes;
+
   const attributes: MdxJsxAttribute[] = [
     {
       type: 'mdxJsxAttribute',
@@ -52,6 +55,15 @@ function toMDX(code: string, config: Record<string, string | null>): MdxJsxFlowE
       type: 'mdxJsxAttribute',
       name: 'config',
       value: JSON.stringify(config),
+    });
+  }
+
+  // Add exportable as a separate boolean attribute
+  if (exportable !== undefined) {
+    attributes.push({
+      type: 'mdxJsxAttribute',
+      name: 'exportable',
+      value: 'true',
     });
   }
 
