@@ -190,3 +190,13 @@ packet-beta
 ## Configuration Isolation Test
 
 The diagrams above should each have their own independent configuration. If Packet 1 (default) looks the same width as Packet 3 (16-bit), the configuration is leaking between diagrams.
+
+## Exportable Diagrams
+
+```mermaid rowHeight="60" bitsPerRow="16" exportable
+packet-beta
+0-7: "Version"
+8-15: "IHL"
+16-23: "DSCP"
+24-31: "ECN"
+```

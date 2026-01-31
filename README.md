@@ -2,16 +2,21 @@
 
 ![image showing various mermaid diagrams on fumadocs](readme-img1.png)
 
-Mermaid diagram integration for [Fumadocs](https://fumadocs.dev) - a modern documentation framework for React.
+Mermaid diagram integration for [Fumadocs](https://fumadocs.dev) - a modern documentation framework for React. You can add Mermaid to your docs easily without a dedicated package, but I maintain a lot of Fumadocs wikis now and wanted a simple one-stop-shop with install instructions and other nice-to-have features I use.
 
 ## Features
 
-- 🎨 Automatic dark/light theme support with `next-themes`
-- ⚡ Client-side rendering with smart caching
-- 🔌 Plug-and-play integration with Fumadocs
-- 📝 Convert markdown code blocks to diagrams automatically
-- 🌳 Tree-shakeable ESM package
-- 💪 Full TypeScript support
+- Automatic dark/light theme support with `next-themes`
+- Client-side rendering with smart caching
+- Plug-and-play integration with Fumadocs
+- Convert markdown code blocks to diagrams automatically
+- Tree-shakeable ESM package
+- Full TypeScript support
+- `exportable` flag for Mermaid blocks
+
+### Exportable flag
+
+![](./exportable-demo.mov)
 
 ## Installation
 
