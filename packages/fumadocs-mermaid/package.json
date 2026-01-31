@@ -1,6 +1,6 @@
 {
   "name": "fumadocs-mermaid",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Mermaid diagram integration for Fumadocs",
   "keywords": [
     "fumadocs",
@@ -14,7 +14,7 @@
   "author": "Sebastian Huus",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sebastianhuus/fumadocs-mermaid.git"
+    "url": "git+https://github.com/sebastianhuus/fumadocs-mermaid.git"
   },
   "files": [
     "dist"
