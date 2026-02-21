@@ -200,3 +200,113 @@ packet-beta
 16-23: "DSCP"
 24-31: "ECN"
 ```
+
+## Zoomable Diagrams
+
+Scroll to zoom, drag to pan, or use the +/−/↺ buttons.
+
+### Simple Zoomable
+
+````md
+```mermaid zoomable
+graph TD
+    A[Start] --> B[Process]
+    B --> C[End]
+```
+````
+
+```mermaid zoomable
+graph TD
+    A[Start] --> B[Process]
+    B --> C[End]
+```
+
+### Large Zoomable Diagram
+
+A complex diagram where pan/zoom is most useful.
+
+````md
+```mermaid zoomable
+graph TD
+    Client -->|HTTP Request| LB[Load Balancer]
+    LB --> API1[API Server 1]
+    LB --> API2[API Server 2]
+    LB --> API3[API Server 3]
+    API1 --> Auth[Auth Service]
+    API2 --> Auth
+    API3 --> Auth
+    Auth --> UserDB[(User DB)]
+    API1 --> Cache[Redis Cache]
+    API2 --> Cache
+    API3 --> Cache
+    Cache --> DB[(Primary DB)]
+    DB --> Replica1[(Read Replica 1)]
+    DB --> Replica2[(Read Replica 2)]
+    API1 --> Queue[Message Queue]
+    API2 --> Queue
+    Queue --> Worker1[Worker 1]
+    Queue --> Worker2[Worker 2]
+    Worker1 --> Storage[Object Storage]
+    Worker2 --> Storage
+    Worker1 --> Notify[Notification Service]
+    Worker2 --> Notify
+    Notify --> Email[Email]
+    Notify --> Push[Push]
+```
+````
+
+```mermaid zoomable
+graph TD
+    Client -->|HTTP Request| LB[Load Balancer]
+    LB --> API1[API Server 1]
+    LB --> API2[API Server 2]
+    LB --> API3[API Server 3]
+    API1 --> Auth[Auth Service]
+    API2 --> Auth
+    API3 --> Auth
+    Auth --> UserDB[(User DB)]
+    API1 --> Cache[Redis Cache]
+    API2 --> Cache
+    API3 --> Cache
+    Cache --> DB[(Primary DB)]
+    DB --> Replica1[(Read Replica 1)]
+    DB --> Replica2[(Read Replica 2)]
+    API1 --> Queue[Message Queue]
+    API2 --> Queue
+    Queue --> Worker1[Worker 1]
+    Queue --> Worker2[Worker 2]
+    Worker1 --> Storage[Object Storage]
+    Worker2 --> Storage
+    Worker1 --> Notify[Notification Service]
+    Worker2 --> Notify
+    Notify --> Email[Email]
+    Notify --> Push[Push]
+```
+
+### Zoomable + Exportable
+
+Both features can be combined.
+
+````md
+```mermaid zoomable exportable
+graph LR
+    A[Design] --> B[Develop]
+    B --> C[Test]
+    C --> D{Pass?}
+    D -->|Yes| E[Deploy]
+    D -->|No| A
+    E --> F[Monitor]
+    F --> A
+```
+````
+
+```mermaid zoomable exportable
+graph LR
+    A[Design] --> B[Develop]
+    B --> C[Test]
+    C --> D{Pass?}
+    D -->|Yes| E[Deploy]
+    D -->|No| A
+    E --> F[Monitor]
+    F --> A
+```
