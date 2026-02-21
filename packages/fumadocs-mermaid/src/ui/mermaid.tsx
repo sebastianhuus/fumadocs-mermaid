@@ -332,25 +332,32 @@ function ZoomableWrapper({ children }: { children: ReactNode }) {
 
   const clampScale = useCallback((s: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, s)), []);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
+  // Attach wheel handler imperatively with { passive: false } so
+  // preventDefault() works and the page doesn't scroll while zooming.
+  useEffect(() => {
     const outer = outerRef.current;
     if (!outer) return;
 
-    const rect = outer.getBoundingClientRect();
-    const cursorX = e.clientX - rect.left;
-    const cursorY = e.clientY - rect.top;
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
 
-    const state = stateRef.current;
-    const oldScale = state.scale;
-    const newScale = clampScale(oldScale + (e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP));
+      const rect = outer.getBoundingClientRect();
+      const cursorX = e.clientX - rect.left;
+      const cursorY = e.clientY - rect.top;
 
-    // Zoom toward cursor position
-    state.translateX = cursorX - (cursorX - state.translateX) * (newScale / oldScale);
-    state.translateY = cursorY - (cursorY - state.translateY) * (newScale / oldScale);
-    state.scale = newScale;
+      const state = stateRef.current;
+      const oldScale = state.scale;
+      const newScale = clampScale(oldScale + (e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP));
 
-    applyTransform();
+      state.translateX = cursorX - (cursorX - state.translateX) * (newScale / oldScale);
+      state.translateY = cursorY - (cursorY - state.translateY) * (newScale / oldScale);
+      state.scale = newScale;
+
+      applyTransform();
+    };
+
+    outer.addEventListener('wheel', handleWheel, { passive: false });
+    return () => outer.removeEventListener('wheel', handleWheel);
   }, [applyTransform, clampScale]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
@@ -428,7 +435,6 @@ function ZoomableWrapper({ children }: { children: ReactNode }) {
           cursor: 'grab',
           touchAction: 'none',
         }}
-        onWheel={handleWheel}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
