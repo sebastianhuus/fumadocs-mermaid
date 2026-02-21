@@ -1,10 +1,10 @@
 'use client';
 
-import { type RefCallback, use, useCallback, useEffect, useId, useRef, useState } from 'react';
+import { type ReactNode, type RefCallback, use, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { buttonVariants } from 'fumadocs-ui/components/ui/button';
 import { useCopyButton } from 'fumadocs-ui/utils/use-copy-button';
-import { Copy, Check, Download } from 'lucide-react';
+import { Copy, Check, Download, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 
 export interface MermaidProps {
   /**
@@ -33,6 +33,11 @@ export interface MermaidProps {
    * When true, shows a hover overlay with copy (PNG) and download (SVG) buttons.
    */
   exportable?: string;
+
+  /**
+   * When true, enables pan and zoom on the rendered diagram.
+   */
+  zoomable?: string;
 }
 
 interface MermaidConfig {
@@ -123,7 +128,7 @@ function buildMermaidConfig(configStr: string | undefined, themeOverride: string
  * Automatically detects dark/light mode when used with next-themes.
  * Renders on client-side only to avoid hydration issues.
  */
-export function Mermaid({ chart, theme: themeOverride, themeCSS = 'margin: 1.5rem auto 0;', config, exportable }: MermaidProps) {
+export function Mermaid({ chart, theme: themeOverride, themeCSS = 'margin: 1.5rem auto 0;', config, exportable, zoomable }: MermaidProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -132,7 +137,7 @@ export function Mermaid({ chart, theme: themeOverride, themeCSS = 'margin: 1.5re
 
   if (!mounted) return null;
 
-  return <MermaidContent chart={chart} themeOverride={themeOverride} themeCSS={themeCSS} config={config} exportable={exportable === 'true'} />;
+  return <MermaidContent chart={chart} themeOverride={themeOverride} themeCSS={themeCSS} config={config} exportable={exportable === 'true'} zoomable={zoomable === 'true'} />;
 }
 
 // Cache for mermaid library and rendered diagrams
@@ -153,6 +158,7 @@ interface MermaidContentProps {
   themeCSS: string;
   config?: string;
   exportable: boolean;
+  zoomable: boolean;
 }
 
 function svgToPngBlob(svgElement: SVGSVGElement): Promise<Blob> {
@@ -258,7 +264,195 @@ function ExportToolbar({ containerRef }: { containerRef: React.RefObject<HTMLDiv
   );
 }
 
-function MermaidContent({ chart, themeOverride, themeCSS, config: configStr, exportable }: MermaidContentProps) {
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 4;
+const ZOOM_STEP = 0.25;
+
+interface ZoomState {
+  scale: number;
+  translateX: number;
+  translateY: number;
+}
+
+function ZoomControls({ onZoomIn, onZoomOut, onReset }: { onZoomIn: () => void; onZoomOut: () => void; onReset: () => void }) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: '8px',
+        right: '8px',
+        display: 'flex',
+        gap: '4px',
+        zIndex: 1,
+      }}
+      data-zoom-controls
+    >
+      <button
+        type="button"
+        className={buttonVariants({ size: 'icon-sm', color: 'outline' })}
+        onClick={onZoomIn}
+        aria-label="Zoom in"
+      >
+        <ZoomIn style={{ width: 14, height: 14 }} />
+      </button>
+      <button
+        type="button"
+        className={buttonVariants({ size: 'icon-sm', color: 'outline' })}
+        onClick={onZoomOut}
+        aria-label="Zoom out"
+      >
+        <ZoomOut style={{ width: 14, height: 14 }} />
+      </button>
+      <button
+        type="button"
+        className={buttonVariants({ size: 'icon-sm', color: 'outline' })}
+        onClick={onReset}
+        aria-label="Reset zoom"
+      >
+        <RotateCcw style={{ width: 14, height: 14 }} />
+      </button>
+    </div>
+  );
+}
+
+function ZoomableWrapper({ children }: { children: ReactNode }) {
+  const outerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const stateRef = useRef<ZoomState>({ scale: 1, translateX: 0, translateY: 0 });
+  const draggingRef = useRef(false);
+  const lastPointerRef = useRef({ x: 0, y: 0 });
+  const [, forceRender] = useState(0);
+
+  const applyTransform = useCallback(() => {
+    const el = innerRef.current;
+    if (!el) return;
+    const { scale, translateX, translateY } = stateRef.current;
+    el.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+  }, []);
+
+  const clampScale = useCallback((s: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, s)), []);
+
+  // Attach wheel handler imperatively with { passive: false } so
+  // preventDefault() works and the page doesn't scroll while zooming.
+  useEffect(() => {
+    const outer = outerRef.current;
+    if (!outer) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+
+      const rect = outer.getBoundingClientRect();
+      const cursorX = e.clientX - rect.left;
+      const cursorY = e.clientY - rect.top;
+
+      const state = stateRef.current;
+      const oldScale = state.scale;
+      const newScale = clampScale(oldScale + (e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP));
+
+      state.translateX = cursorX - (cursorX - state.translateX) * (newScale / oldScale);
+      state.translateY = cursorY - (cursorY - state.translateY) * (newScale / oldScale);
+      state.scale = newScale;
+
+      applyTransform();
+    };
+
+    outer.addEventListener('wheel', handleWheel, { passive: false });
+    return () => outer.removeEventListener('wheel', handleWheel);
+  }, [applyTransform, clampScale]);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    draggingRef.current = true;
+    lastPointerRef.current = { x: e.clientX, y: e.clientY };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    const outer = outerRef.current;
+    if (outer) outer.style.cursor = 'grabbing';
+  }, []);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!draggingRef.current) return;
+    const dx = e.clientX - lastPointerRef.current.x;
+    const dy = e.clientY - lastPointerRef.current.y;
+    lastPointerRef.current = { x: e.clientX, y: e.clientY };
+
+    stateRef.current.translateX += dx;
+    stateRef.current.translateY += dy;
+    applyTransform();
+  }, [applyTransform]);
+
+  const handlePointerUp = useCallback(() => {
+    draggingRef.current = false;
+    const outer = outerRef.current;
+    if (outer) outer.style.cursor = 'grab';
+  }, []);
+
+  const zoomIn = useCallback(() => {
+    const outer = outerRef.current;
+    if (!outer) return;
+    const state = stateRef.current;
+    const rect = outer.getBoundingClientRect();
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const oldScale = state.scale;
+    const newScale = clampScale(oldScale + ZOOM_STEP);
+    state.translateX = cx - (cx - state.translateX) * (newScale / oldScale);
+    state.translateY = cy - (cy - state.translateY) * (newScale / oldScale);
+    state.scale = newScale;
+    applyTransform();
+    forceRender((n) => n + 1);
+  }, [applyTransform, clampScale]);
+
+  const zoomOut = useCallback(() => {
+    const outer = outerRef.current;
+    if (!outer) return;
+    const state = stateRef.current;
+    const rect = outer.getBoundingClientRect();
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const oldScale = state.scale;
+    const newScale = clampScale(oldScale - ZOOM_STEP);
+    state.translateX = cx - (cx - state.translateX) * (newScale / oldScale);
+    state.translateY = cy - (cy - state.translateY) * (newScale / oldScale);
+    state.scale = newScale;
+    applyTransform();
+    forceRender((n) => n + 1);
+  }, [applyTransform, clampScale]);
+
+  const reset = useCallback(() => {
+    stateRef.current = { scale: 1, translateX: 0, translateY: 0 };
+    applyTransform();
+    forceRender((n) => n + 1);
+  }, [applyTransform]);
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <div
+        ref={outerRef}
+        style={{
+          overflow: 'hidden',
+          borderRadius: '8px',
+          border: '1px solid var(--fd-border, #e5e7eb)',
+          cursor: 'grab',
+          touchAction: 'none',
+        }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+      >
+        <div
+          ref={innerRef}
+          style={{ transformOrigin: '0 0' }}
+        >
+          {children}
+        </div>
+      </div>
+      <ZoomControls onZoomIn={zoomIn} onZoomOut={zoomOut} onReset={reset} />
+    </div>
+  );
+}
+
+function MermaidContent({ chart, themeOverride, themeCSS, config: configStr, exportable, zoomable }: MermaidContentProps) {
   const id = useId();
   const { resolvedTheme: systemTheme } = useTheme();
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -298,6 +492,15 @@ function MermaidContent({ chart, themeOverride, themeCSS, config: configStr, exp
     }
   }, [bindFunctions]);
 
+  const svgDiv = (
+    <div
+      ref={refCallback}
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
+
+  const content = zoomable ? <ZoomableWrapper>{svgDiv}</ZoomableWrapper> : svgDiv;
+
   if (exportable) {
     return (
       <div
@@ -311,19 +514,11 @@ function MermaidContent({ chart, themeOverride, themeCSS, config: configStr, exp
           if (toolbar) toolbar.style.opacity = '0';
         }}
       >
-        <div
-          ref={refCallback}
-          dangerouslySetInnerHTML={{ __html: svg }}
-        />
+        {content}
         <ExportToolbar containerRef={containerRef} />
       </div>
     );
   }
 
-  return (
-    <div
-      ref={refCallback}
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
-  );
+  return content;
 }

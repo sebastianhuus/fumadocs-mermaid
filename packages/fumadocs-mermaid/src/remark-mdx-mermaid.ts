@@ -38,8 +38,8 @@ function parseCodeBlockAttributes(meta: string): CodeBlockAttributes {
 }
 
 function toMDX(code: string, parsedAttributes: Record<string, string | null>): MdxJsxFlowElement {
-  // Extract exportable flag before passing rest as config
-  const { exportable, ...config } = parsedAttributes;
+  // Extract boolean flags before passing rest as config
+  const { exportable, zoomable, ...config } = parsedAttributes;
 
   const attributes: MdxJsxAttribute[] = [
     {
@@ -63,6 +63,15 @@ function toMDX(code: string, parsedAttributes: Record<string, string | null>): M
     attributes.push({
       type: 'mdxJsxAttribute',
       name: 'exportable',
+      value: 'true',
+    });
+  }
+
+  // Add zoomable as a separate boolean attribute
+  if (zoomable !== undefined) {
+    attributes.push({
+      type: 'mdxJsxAttribute',
+      name: 'zoomable',
       value: 'true',
     });
   }
