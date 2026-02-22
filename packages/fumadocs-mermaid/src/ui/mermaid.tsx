@@ -206,7 +206,7 @@ function svgToPngBlob(svgElement: SVGSVGElement): Promise<Blob> {
   });
 }
 
-function ExportToolbar({ containerRef }: { containerRef: React.RefObject<HTMLDivElement | null> }) {
+function ExportButtons({ containerRef }: { containerRef: React.RefObject<HTMLDivElement | null> }) {
   const [copied, onCopy] = useCopyButton(async () => {
     const svgEl = containerRef.current?.querySelector('svg');
     if (!svgEl) return;
@@ -232,18 +232,7 @@ function ExportToolbar({ containerRef }: { containerRef: React.RefObject<HTMLDiv
   }, [containerRef]);
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: '8px',
-        right: '8px',
-        display: 'flex',
-        gap: '4px',
-        opacity: 0,
-        transition: 'opacity 150ms',
-      }}
-      data-export-toolbar
-    >
+    <>
       <button
         type="button"
         className={buttonVariants({ size: 'icon-sm', color: 'outline' })}
@@ -260,7 +249,7 @@ function ExportToolbar({ containerRef }: { containerRef: React.RefObject<HTMLDiv
       >
         <Download style={{ width: 14, height: 14 }} />
       </button>
-    </div>
+    </>
   );
 }
 
@@ -274,23 +263,19 @@ interface ZoomState {
   translateY: number;
 }
 
-function ZoomControls({ onZoomIn, onZoomOut, onReset }: { onZoomIn: () => void; onZoomOut: () => void; onReset: () => void }) {
+interface ZoomActions {
+  zoomIn: () => void;
+  zoomOut: () => void;
+  reset: () => void;
+}
+
+function ZoomButtons({ actionsRef }: { actionsRef: React.RefObject<ZoomActions | null> }) {
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: '8px',
-        right: '8px',
-        display: 'flex',
-        gap: '4px',
-        zIndex: 1,
-      }}
-      data-zoom-controls
-    >
+    <>
       <button
         type="button"
         className={buttonVariants({ size: 'icon-sm', color: 'outline' })}
-        onClick={onZoomIn}
+        onClick={() => actionsRef.current?.zoomIn()}
         aria-label="Zoom in"
       >
         <ZoomIn style={{ width: 14, height: 14 }} />
@@ -298,7 +283,7 @@ function ZoomControls({ onZoomIn, onZoomOut, onReset }: { onZoomIn: () => void; 
       <button
         type="button"
         className={buttonVariants({ size: 'icon-sm', color: 'outline' })}
-        onClick={onZoomOut}
+        onClick={() => actionsRef.current?.zoomOut()}
         aria-label="Zoom out"
       >
         <ZoomOut style={{ width: 14, height: 14 }} />
@@ -306,22 +291,21 @@ function ZoomControls({ onZoomIn, onZoomOut, onReset }: { onZoomIn: () => void; 
       <button
         type="button"
         className={buttonVariants({ size: 'icon-sm', color: 'outline' })}
-        onClick={onReset}
+        onClick={() => actionsRef.current?.reset()}
         aria-label="Reset zoom"
       >
         <RotateCcw style={{ width: 14, height: 14 }} />
       </button>
-    </div>
+    </>
   );
 }
 
-function ZoomableWrapper({ children }: { children: ReactNode }) {
+function ZoomableViewport({ children, actionsRef }: { children: ReactNode; actionsRef: React.MutableRefObject<ZoomActions | null> }) {
   const outerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const stateRef = useRef<ZoomState>({ scale: 1, translateX: 0, translateY: 0 });
   const draggingRef = useRef(false);
   const lastPointerRef = useRef({ x: 0, y: 0 });
-  const [, forceRender] = useState(0);
 
   const applyTransform = useCallback(() => {
     const el = innerRef.current;
@@ -399,7 +383,6 @@ function ZoomableWrapper({ children }: { children: ReactNode }) {
     state.translateY = cy - (cy - state.translateY) * (newScale / oldScale);
     state.scale = newScale;
     applyTransform();
-    forceRender((n) => n + 1);
   }, [applyTransform, clampScale]);
 
   const zoomOut = useCallback(() => {
@@ -415,39 +398,40 @@ function ZoomableWrapper({ children }: { children: ReactNode }) {
     state.translateY = cy - (cy - state.translateY) * (newScale / oldScale);
     state.scale = newScale;
     applyTransform();
-    forceRender((n) => n + 1);
   }, [applyTransform, clampScale]);
 
   const reset = useCallback(() => {
     stateRef.current = { scale: 1, translateX: 0, translateY: 0 };
     applyTransform();
-    forceRender((n) => n + 1);
   }, [applyTransform]);
 
+  // Expose zoom actions to parent
+  useEffect(() => {
+    actionsRef.current = { zoomIn, zoomOut, reset };
+    return () => { actionsRef.current = null; };
+  }, [actionsRef, zoomIn, zoomOut, reset]);
+
   return (
-    <div style={{ position: 'relative' }}>
+    <div
+      ref={outerRef}
+      style={{
+        overflow: 'hidden',
+        borderRadius: '8px',
+        border: '1px solid var(--fd-border, #e5e7eb)',
+        cursor: 'grab',
+        touchAction: 'none',
+      }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+    >
       <div
-        ref={outerRef}
-        style={{
-          overflow: 'hidden',
-          borderRadius: '8px',
-          border: '1px solid var(--fd-border, #e5e7eb)',
-          cursor: 'grab',
-          touchAction: 'none',
-        }}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
+        ref={innerRef}
+        style={{ transformOrigin: '0 0' }}
       >
-        <div
-          ref={innerRef}
-          style={{ transformOrigin: '0 0' }}
-        >
-          {children}
-        </div>
+        {children}
       </div>
-      <ZoomControls onZoomIn={zoomIn} onZoomOut={zoomOut} onReset={reset} />
     </div>
   );
 }
@@ -492,6 +476,8 @@ function MermaidContent({ chart, themeOverride, themeCSS, config: configStr, exp
     }
   }, [bindFunctions]);
 
+  const zoomActionsRef = useRef<ZoomActions | null>(null);
+
   const svgDiv = (
     <div
       ref={refCallback}
@@ -499,26 +485,47 @@ function MermaidContent({ chart, themeOverride, themeCSS, config: configStr, exp
     />
   );
 
-  const content = zoomable ? <ZoomableWrapper>{svgDiv}</ZoomableWrapper> : svgDiv;
+  const hasToolbar = exportable || zoomable;
 
-  if (exportable) {
-    return (
+  const diagram = zoomable
+    ? <ZoomableViewport actionsRef={zoomActionsRef}>{svgDiv}</ZoomableViewport>
+    : svgDiv;
+
+  if (!hasToolbar) return diagram;
+
+  // When zoomable, toolbar is always visible.
+  // When only exportable, toolbar fades in on hover.
+  const alwaysVisible = zoomable;
+
+  return (
+    <div
+      style={{ position: 'relative' }}
+      onMouseEnter={!alwaysVisible ? (e) => {
+        const toolbar = e.currentTarget.querySelector('[data-diagram-toolbar]') as HTMLElement | null;
+        if (toolbar) toolbar.style.opacity = '1';
+      } : undefined}
+      onMouseLeave={!alwaysVisible ? (e) => {
+        const toolbar = e.currentTarget.querySelector('[data-diagram-toolbar]') as HTMLElement | null;
+        if (toolbar) toolbar.style.opacity = '0';
+      } : undefined}
+    >
+      {diagram}
       <div
-        style={{ position: 'relative' }}
-        onMouseEnter={(e) => {
-          const toolbar = e.currentTarget.querySelector('[data-export-toolbar]') as HTMLElement | null;
-          if (toolbar) toolbar.style.opacity = '1';
+        style={{
+          position: 'absolute',
+          top: '8px',
+          right: '8px',
+          display: 'flex',
+          gap: '4px',
+          opacity: alwaysVisible ? 1 : 0,
+          transition: alwaysVisible ? undefined : 'opacity 150ms',
+          zIndex: 1,
         }}
-        onMouseLeave={(e) => {
-          const toolbar = e.currentTarget.querySelector('[data-export-toolbar]') as HTMLElement | null;
-          if (toolbar) toolbar.style.opacity = '0';
-        }}
+        data-diagram-toolbar
       >
-        {content}
-        <ExportToolbar containerRef={containerRef} />
+        {exportable && <ExportButtons containerRef={containerRef} />}
+        {zoomable && <ZoomButtons actionsRef={zoomActionsRef} />}
       </div>
-    );
-  }
-
-  return content;
+    </div>
+  );
 }
